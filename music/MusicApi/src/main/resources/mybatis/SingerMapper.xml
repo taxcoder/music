@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.SingerMapper">
+    <insert id="addSinger" parameterType="singer">
+        insert into MusicWebsite.singer(`singer_name`,`singer_desc`,`singer_head_image`,`singer_status`,`region_id`,`abbreviation`,`singer_born`)
+        values(#{singerName},#{singerDesc},#{singerHeadImage},#{singerStatus},#{regionId},#{abbreviation},#{singerBorn})
+    </insert>
+
+    <update id="updateSinger">
+        update MusicWebsite.singer
+        <trim prefix="set" suffixOverrides=",">
+        <if test="singerName != null">singer_name = #{singerName},</if>
+        <if test="singerDesc != null">singer_desc = #{singerDesc},</if>
+        <if test="singerHeadImage != null">singer_head_image = #{singerHeadImage},</if>
+        <if test="singerStatus != null">singer_status = #{singerStatus},</if>
+        <if test="regionId != null">region_id = #{regionId},</if>
+        <if test="abbreviation != null">abbreviation = #{abbreviation},</if>
+        <if test="singerBorn != null">singer_born = #{singerBorn},</if>
+        </trim>
+        where singer_id = #{singerId}
+    </update>
+
+    <delete id="deleteSinger">
+        delete from MusicWebsite.singer where singer_id = #{singerId}
+    </delete>
+
+    <select id="recommendSinger" resultType="singerVo" resultMap="singer">
+        select singer_id,singer_name,singer_head_image from MusicWebsite.singer
+        order by singer_id limit 10
+    </select>
+
+    <select id="pageSinger" resultType="singerVo" resultMap="singer">
+        select singer_id,singer_name,singer_head_image from MusicWebsite.singer
+        where region_id = #{regionId}
+        and singer_status = #{singerStatus}
+        and abbreviation = #{abbreviation} limit #{current},#{length}
+    </select>
+
+    <select id="pageSingerPopular" resultType="singerVo" resultMap="singer">
+        select singer_id,singer_name,singer_head_image from MusicWebsite.singer
+        where region_id = #{regionId}
+          and singer_status = #{singerStatus} limit #{current},#{length}
+    </select>
+
+    <select id="pageSingerCount" resultType="java.lang.Integer">
+        select count(singer_id) from MusicWebsite.singer
+        where region_id = #{regionId}
+        and singer_status = #{singerStatus}
+        and abbreviation = #{abbreviation} limit #{current},#{length}
+    </select>
+
+    <select id="pageSingerPopularCount" resultType="java.lang.Integer">
+        select count(singer_id) from MusicWebsite.singer
+        where region_id = #{regionId}
+        and singer_status = #{singerStatus} limit #{current},#{length}
+    </select>
+
+    <resultMap id="singer" type="singerVo">
+        <result column="singer_id" property="singerId"/>
+        <result column="singer_name" property="singerName"/>
+        <result column="singer_head_image" property="singerHeadImage"/>
+    </resultMap>
+
+    <select id="findSingerInfo" resultType="singerVo" resultMap="singerInfo">
+        select singer_id,singer_name,singer_head_image,singer_desc from MusicWebsite.singer where singer_id = #{singerId}
+    </select>
+
+    <resultMap id="singerInfo" type="singerVo">
+        <result column="singer_id" property="singerId"/>
+        <result column="singer_name" property="singerName"/>
+        <result column="singer_head_image" property="singerHeadImage"/>
+        <result column="singer_desc" property="singerDesc"/>
+    </resultMap>
+
+    <select id="findAll" resultType="singer" resultMap="singers">
+        select * from MusicWebsite.singer
+    </select>
+
+    <resultMap id="singers" type="singer">
+        <result column="singer_id" property="singerId"/>
+        <result column="singer_name" property="singerName"/>
+        <result column="singer_head_image" property="singerHeadImage"/>
+        <result column="singer_status" property="singerStatus"/>
+        <result column="singer_born" property="singerBorn"/>
+        <result column="singer_desc" property="singerDesc"/>
+        <result column="region_id" property="regionId"/>
+    </resultMap>
+
+    <select id="findSingerName" resultType="com.tanx.music.pojo.vo.SingerVo">
+        select singer_id as singerId,singer_name as singerName from singer where singer_name like #{query}
+    </select>
+
+    <select id="findSingerLength" resultType="java.lang.Integer">
+        select count(singer_id) from MusicWebsite.singer
+    </select>
+
+    <select id="findSingerByKeyword" resultType="com.tanx.music.pojo.vo.SongVo" parameterType="map" resultMap="singerInfo">
+        select singer_id,singer_name,singer_head_image,singer_desc from singer where singer_name like #{keyword} limit #{current},#{length}
+    </select>
+
+    <select id="findSingerByKeywordCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(distinct singer_id) from singer where singer_name like #{keyword}
+    </select>
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.SingerLinkSongMapper">
+
+    <insert id="addSingerLinkSong">
+        insert into MusicWebsite.singer_and_song
+        values(#{linkId},#{singerId},#{songId})
+    </insert>
+
+    <delete id="deleteSingerLink">
+        delete from MusicWebsite.singer_and_song where singer_id = #{singerId}
+    </delete>
+
+    <delete id="deleteSongLink">
+        delete from MusicWebsite.singer_and_song where song_id = #{songId}
+    </delete>
+
+
+    <select id="findSingerSongCount" resultType="java.lang.Integer">
+        select count(distinct son.song_id) from singer sin,song son,singer_and_song sas
+        where sin.singer_id = sas.singer_id and son.song_id = sas.song_id
+          and sas.singer_id = #{singerId}
+    </select>
+
+    <select id="findSingerSongAll" resultType="java.lang.String">
+        select sas.song_id as songId from singer_and_song sas,singer sin
+        where sas.singer_id = sin.singer_id
+          and sin.singer_id = #{singerId}
+    </select>
+
+    <select id="findSingerSong" resultType="songVo" resultMap="newSong">
+        select s.song_id, s.song_name, s.song_images, s.song_length, s.lyric, s.add_time,
+               al.album_id, al.album_name,
+               sin.singer_id,sin.singer_name,
+               r.region_id, region_name
+        from song s,
+             album al,
+             singer_and_song sas,
+             singer sin,
+             region r
+        where s.album_id = al.album_id
+          and s.region_id = r.region_id
+          and s.song_id = sas.song_id
+          and sin.singer_id = sas.singer_id
+          and s.song_id in
+              (select song_id from
+                  (select s.song_id from song s,singer sin,singer_and_song sas
+                   where s.song_id = sas.song_id and sin.singer_id = sas.singer_id
+                     and sin.singer_id = #{singerId} order by s.add_time desc limit #{current},#{length}) so)
+    </select>
+
+    <resultMap id="newSong" type="songVo">
+        <result column="song_id" property="songId"/>
+        <result column="song_name" property="songName"/>
+        <result column="song_images" property="songImages"/>
+        <result column="song_length" property="songLength"/>
+        <result column="lyric" property="lyric"/>
+        <result column="add_time" property="addTime"/>
+
+        <collection property="region" javaType="region" ofType="region">
+            <id column="region_id" javaType="int" property="regionId"></id>
+            <result column="region_name" javaType="String" property="regionName"></result>
+        </collection>
+
+        <collection property="author" javaType="list" ofType="singer">
+            <id column="singer_id" property="singerId"></id>
+            <result column="singer_name" property="singerName"></result>
+        </collection>
+
+        <collection property="album" javaType="Album" ofType="Album">
+            <result column="album_id" javaType="String" property="albumId"></result>
+            <result column="album_name" javaType="String" property="albumName"></result>
+        </collection>
+    </resultMap>
+</mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.UserMapper">
+    <!-- 增加用户  -->
+    <insert id="insertUser" parameterType="user">
+        insert into MusicWebsite.user(`user_id`,`user_name`,`user_password`,`user_email`,`user_head_address`,`user_sex`,`user_bornTime`,`user_phone`)
+        values(#{userId},#{userName},#{userPassword},#{userEmail},#{userHeadAddress},#{userSex},#{userBornTime},#{userPhone})
+    </insert>
+
+    <delete id="deleteUser" parameterType="java.lang.String">
+        delete from MusicWebsite.user where user_id = #{userId}
+    </delete>
+
+    <update id="updateUser" parameterType="user">
+        update MusicWebsite.user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="userName != null">user_name = #{userName},</if>
+            <if test="userPassword != null">user_password = #{userPassword},</if>
+            <if test="userHeadAddress != null">user_head_address = #{userHeadAddress},</if>
+            <if test="userPhone != null">user_phone = #{userPhone},</if>
+            <if test="userBornTime != null">user_bornTime = #{userBornTime},</if>
+            <if test="userSex != null">user_sex = #{userSex},</if>
+            <if test="userEmail != null">user_email = #{userEmail},</if>
+            <if test="userDesc != null">user_desc = #{userDesc},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+    <update id="updatePassword" parameterType="map">
+        update user set user_password = #{password} where user_email = #{userEmail}
+    </update>
+
+    <select id="findAll" resultType="list" resultMap="allUser">
+        select * from MusicWebsite.user
+    </select>
+
+    <resultMap id="allUser" type="user">
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_phone" property="userPhone"/>
+        <result column="user_email" property="userEmail"/>
+        <result column="user_sex" property="userSex"/>
+        <result column="create_time" property="createTime"/>
+        <result column="user_head_address" property="userHeadAddress"/>
+        <result column="user_bornTime" property="userBornTime"/>
+        <result column="user_desc" property="userDesc"/>
+    </resultMap>
+
+    <select id="findUser" resultType="user" resultMap="alone">
+        select * from MusicWebsite.user where user_id = #{userId}
+    </select>
+
+    <resultMap id="alone" type="user">
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_phone" property="userPhone"/>
+        <result column="user_password" property="userPassword"/>
+        <result column="user_email" property="userEmail"/>
+        <result column="user_sex" property="userSex"/>
+        <result column="role_id" property="roleId"/>
+    </resultMap>
+
+    <select id="findLogin" resultType="user" resultMap="login">
+        select * from MusicWebsite.user where user_email = #{userEmail} and user_password = #{userPassword}
+    </select>
+
+    <resultMap id="login" type="user">
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+    </resultMap>
+
+    <select id="findByUserEmail" resultType="user" resultMap="findUserEmail">
+        select * from MusicWebsite.user where `user_email` = #{userEmail}
+    </select>
+
+    <resultMap id="findUserEmail" type="user">
+        <result column="user_id" property="userId"/>
+        <result column="user_email" property="userEmail"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_head_address" property="userHeadAddress"/>
+    </resultMap>
+
+    <select id="findUserLength" resultType="java.lang.Integer">
+        select count(user_id) from user
+    </select>
+
+</mapper>

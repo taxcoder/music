@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.SongSheetInfoMapper">
+    <select id="findSongSheet" resultType="songSheetVo" resultMap="songSheet">
+        select sl.song_list_id,sl.song_list_name,sl.song_list_images_address,temperature,author,song_list_desc,
+               st.song_sheet_type_id,st.song_sheet_type_name
+        from song_list sl,song_sheet_link_type lt,song_sheet_type st
+        where sl.song_list_id = lt.song_list_id and st.song_sheet_type_id = lt.song_sheet_type_id
+          and sl.song_list_id = #{songSheetId} order by temperature desc
+    </select>
+
+    <resultMap id="songSheet" type="songSheetVo">
+        <result column="song_list_id" property="songListId"/>
+        <result column="song_list_name" property="songListName"/>
+        <result column="song_list_images_address" property="songListImagesAddress"/>
+        <result column="temperature" property="temperature"/>
+        <result column="author" property="author"/>
+        <result column="song_list_desc" property="songListDesc"/>
+        <collection property="songSheetType" javaType="list" ofType="songSheetType">
+            <result column="song_sheet_type_id" property="songSheetTypeId"/>
+            <result column="song_sheet_type_name" property="songSheetTypeName"/>
+        </collection>
+    </resultMap>
+
+    <select id="findSongSheetLinkSong" resultType="songVo" resultMap="newSong">
+        select s.song_id, s.song_name, s.song_images, s.song_length, s.lyric, s.add_time,
+               sin.singer_id, singer_name,
+               a.album_id, album_name,
+               r.region_id, region_name
+        from sheet_and_song sas,
+             song s,
+             song_list sl,
+             album a,
+             singer sin,
+             region r,
+             singer_and_song singas
+        where sl.song_list_id = sas.song_list_id and sas.song_id = s.song_id
+          and s.song_id = singas.song_id and singas.singer_id = sin.singer_id
+          and s.album_id = a.album_id
+          and s.region_id = r.region_id
+          and sas.song_id in (
+            select song_id from
+                (select s.song_id from song s,song_list sl,sheet_and_song sas
+                 where s.song_id = sas.song_id and sl.song_list_id = sas.song_list_id
+                   and sl.song_list_id = #{songSheetId} order by temperature desc limit  #{current},#{length}) as l
+        )
+          and sl.song_list_id = #{songSheetId}
+        order by s.add_time;
+    </select>
+
+    <resultMap id="newSong" type="songVo">
+        <result column="song_id" property="songId"/>
+        <result column="song_name" property="songName"/>
+        <result column="song_images" property="songImages"/>
+        <result column="song_length" property="songLength"/>
+        <result column="lyric" property="lyric"/>
+        <result column="add_time" property="addTime"/>
+
+        <collection property="region" javaType="region" ofType="region">
+            <id column="region_id" javaType="int" property="regionId"></id>
+            <result column="region_name" javaType="String" property="regionName"></result>
+        </collection>
+
+        <collection property="author" javaType="list" ofType="singer">
+            <id column="singer_id" property="singerId"></id>
+            <result column="singer_name" property="singerName"></result>
+        </collection>
+
+        <collection property="album" javaType="Album" ofType="Album">
+            <result column="album_id" javaType="String" property="albumId"></result>
+            <result column="album_name" javaType="String" property="albumName"></result>
+        </collection>
+    </resultMap>
+
+    <select id="findSongSheetLinkSongCount" resultType="java.lang.Integer">
+        select count(distinct s.song_id) from sheet_and_song sas,song s,song_list sl
+        where sl.song_list_id = sas.song_list_id and sas.song_id = s.song_id
+          and sl.song_list_id = #{songSheetId}
+    </select>
+
+    <insert id="addSongSheetLinkSong">
+        insert into MusicWebsite.sheet_and_song
+        values (#{sheetSongId},#{songSheetId},#{songId})
+    </insert>
+</mapper>

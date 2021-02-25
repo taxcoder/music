@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.RegionMapper">
+
+
+    <select id="findAll" resultType="region" resultMap="region">
+        select * from MusicWebsite.region
+    </select>
+
+    <resultMap id="region" type="region">
+        <result column="region_id" property="regionId"/>
+        <result column="region_name" property="regionName"/>
+    </resultMap>
+</mapper>

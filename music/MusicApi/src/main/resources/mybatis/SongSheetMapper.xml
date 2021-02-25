@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.SongSheetMapper">
+    <insert id="addSongList">
+        insert into MusicWebsite.song_list(`song_list_id`,`song_list_name`,`song_list_images_address`,`author`
+        <if test="songListDesc!=null">,`song_list_desc`</if>)
+        values(#{songListId},#{songListName},#{songListImagesAddress},#{author}
+        <if test="songListDesc!=null">,#{songListDesc}</if>)
+    </insert>
+    <update id="updateSongSheet">
+        update MusicWebsite.song_list set song_list_name = #{songListName}
+        <if test="songListDesc!=null">, song_list_desc = #{songListDesc}</if>
+        where song_list_id = #{songListId}
+    </update>
+
+    <delete id="deleteSongSheet">
+        delete from MusicWebsite.song_list where song_list_id = #{songSheetId}
+    </delete>
+
+    <!-- 获取所有歌单(分页) -->
+    <select id="findSongList" parameterType="songListVo" resultMap="type">
+        select l.song_list_id,l.song_list_name,l.song_list_images_address,
+               l.temperature,st.*
+        from song_list l,song_sheet_link_type t,song_sheet_type st
+        where l.song_list_id = t.song_list_id and t.song_sheet_type_id = st.song_sheet_type_id and l.song_list_id in
+        (select * from (select song_list_id from song_list order by temperature desc limit #{current},#{length}) as l)
+    </select>
+
+    <!-- 获取最新的歌单 -->
+    <select id="findNewSongList" resultType="songListVo" resultMap="type">
+        select song_list_id,song_list_name,song_list_images_address,temperature from MusicWebsite.song_list order by create_time desc limit #{current},#{length}
+    </select>
+
+    <!-- 获取推荐的歌单 -->
+    <select id="findRecommendSongList" resultType="songListVo" resultMap="type">
+        select song_list_id,song_list_name,song_list_images_address,temperature from MusicWebsite.song_list order by temperature desc limit #{current},#{length}
+    </select>
+
+    <!-- 获取歌单总数 -->
+    <select id="findSongListCount" resultType="java.lang.Integer">
+        select count(song_list_id) from MusicWebsite.song_list
+    </select>
+
+    <!-- 根据类别ID查询数据 -->
+    <select id="findSongListByTagId" resultType="songListTagVo" resultMap="tagDatas">
+        select l.song_list_id,l.song_list_name,l.song_list_images_address,l.temperature,l.author,sheet.song_sheet_type_name,sheet.song_sheet_type_id
+        from MusicWebsite.song_list l,MusicWebsite.song_sheet_link_type t,MusicWebsite.song_sheet_type sheet
+        where l.song_list_id = t.song_list_id and sheet.song_sheet_type_id = t.song_sheet_type_id and sheet.song_sheet_type_id = #{songSheetTypeId}
+          and l.song_list_id in (select l.song_list_id from (select * from MusicWebsite.song_list limit #{current},#{length}) as list)
+    </select>
+
+    <!-- 获取类别的歌单总数 -->
+    <select id="findSongListByTagIdCount" resultType="java.lang.Integer">
+        select count(l.song_list_id)
+        from MusicWebsite.song_list l,MusicWebsite.song_sheet_link_type t,MusicWebsite.song_sheet_type sheet
+        where l.song_list_id = t.song_list_id and sheet.song_sheet_type_id = t.song_sheet_type_id and sheet.song_sheet_type_id = #{songSheetTypeId}
+    </select>
+
+    <resultMap id="tagDatas" type="songListTagVo">
+        <id column="song_sheet_type_id" property="songSheetTypeId"/>
+        <result column="song_sheet_type_name" property="songSheetTypeName"/>
+        <collection property="songList" ofType="songListVo" javaType="list">
+            <result column="song_list_id" property="songListId"/>
+            <result column="song_list_name" property="songListName"/>
+            <result column="song_list_images_address" property="songListImagesAddress"/>
+            <result column="temperature" property="temperature"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="type" type="songListVo">
+        <id column="song_list_id" jdbcType="VARCHAR" property="songListId"/>
+        <result column="song_list_name" jdbcType="VARCHAR" property="songListName"/>
+        <result column="song_list_images_address" jdbcType="VARCHAR" property="songListImagesAddress"/>
+        <result column="temperature" jdbcType="BIGINT" property="temperature"/>
+        <collection property="songSheetTypeList" ofType="songSheetType" javaType="list">
+            <id column="song_sheet_type_id" property="songSheetTypeId" jdbcType="BIGINT"/>
+            <result column="song_sheet_type_name" property="songSheetTypeName" jdbcType="VARCHAR"/>
+            <result column="big_type_id" property="bigTypeId" jdbcType="BIGINT"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="findAllSongSheet" resultType="com.tanx.music.pojo.vo.SongSheetVo" resultMap="songSheet">
+        select * from song_list sl,song_sheet_link_type sslt,song_sheet_type sst
+        where sl.song_list_id = sslt.song_list_id and sslt.song_sheet_type_id = sst.song_sheet_type_id
+        order by temperature desc
+    </select>
+
+    <resultMap id="songSheet" type="songSheetVo">
+        <result column="song_list_id" property="songListId"/>
+        <result column="song_list_name" property="songListName"/>
+        <result column="song_list_images_address" property="songListImagesAddress"/>
+        <result column="temperature" property="temperature"/>
+        <result column="author" property="author"/>
+        <result column="song_list_desc" property="songListDesc"/>
+        <result column="create_time" property="createTime"/>
+        <collection property="songSheetType" javaType="list" ofType="songSheetType">
+            <result column="song_sheet_type_id" property="songSheetTypeId"/>
+            <result column="song_sheet_type_name" property="songSheetTypeName"/>
+        </collection>
+    </resultMap>
+
+    <select id="findSongSheetLinkSong" resultType="java.lang.String">
+        select song_id from sheet_and_song
+        where song_list_id = #{songSheetId}
+    </select>
+
+    <select id="findSongSheetByKeyword" resultType="com.tanx.music.pojo.vo.SongListVo" parameterType="map" resultMap="type">
+        select song_list_id,song_list_name,song_list_images_address,temperature
+        from song_list
+        where song_list_name like #{keyword}
+        order by temperature desc limit #{current},#{length}
+    </select>
+
+    <select id="findSongSheetByKeywordCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(distinct song_list_id)
+        from song_list
+        where song_list_name like #{keyword}
+    </select>
+
+    <!-- 删除歌单连接歌曲信息 -->
+    <delete id="deleteSongSheetLinkSong">
+        delete from MusicWebsite.sheet_and_song where song_id in
+        <foreach collection="lists" item="list" close=")" separator="," open="(">
+            #{list}
+        </foreach>
+    </delete>
+
+    <select id="findSongListById" resultType="songList">
+        select song_list_id songListId,song_list_name songListName from MusicWebsite.song_list where song_list_id = #{songListId}
+    </select>
+
+    <select id="finSongSheetLength" resultType="java.lang.Integer">
+        select count(song_list_id) from MusicWebsite.song_list
+    </select>
+</mapper>

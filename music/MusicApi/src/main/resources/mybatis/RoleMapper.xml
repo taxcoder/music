@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.RoleMapper">
+
+    <select id="findByRoleId" resultType="roles" resultMap="RoleData">
+        select * from MusicWebsite.roles where role_id = #{roleId}
+    </select>
+
+    <select id="findAll" resultType="roles" resultMap="RoleData">
+        select * from MusicWebsite.roles
+    </select>
+
+    <resultMap id="RoleData" type="roles">
+        <result column="role_id" property="roleId"/>
+        <result column="role_name" property="roleName"/>
+        <result column="role_systemName" property="roleSystemName"/>
+        <result column="url" property="url"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.TypesMapper">
+
+    <select id="findAll" resultType="bigType" resultMap="big_type">
+        select * from MusicWebsite.big_type
+    </select>
+
+    <select id="findTypeName" resultType="songSheetType">
+        select song_sheet_type_id songSheetTypeId,song_sheet_type_name songSheetTypeName
+        from MusicWebsite.song_sheet_type where song_sheet_type_id = #{songSheetTypeId}
+    </select>
+
+    <resultMap id="big_type" type="bigType">
+        <result column="big_type_id" property="bigTypeId"/>
+        <result column="big_type_name" property="bigTypeName"/>
+    </resultMap>
+
+    <select id="findTypeAll" resultType="map">
+        select t.song_sheet_type_id as songSheetTypeId,t.song_sheet_type_name as songSheetTypeName,b.big_type_name as bigTypeName
+        from MusicWebsite.song_sheet_type t,MusicWebsite.big_type b
+        where t.big_type_id = b.big_type_id
+    </select>
+
+    <insert id="addLinkSongList">
+        insert into song_sheet_link_type(`link_id`,`song_list_id`,`song_sheet_type_id`)
+
+        <trim prefix="value" suffixOverrides=",">
+            <foreach collection="lists" item="list">
+                (#{list.linkId},#{list.songListId},#{list.songSheetTypeId}),
+            </foreach>
+        </trim>
+    </insert>
+
+    <select id="findTypeBySongSheetTypeId" resultType="songSheetType">
+        select song_sheet_type_id as songSheetTypeId,song_sheet_type_name as songSheettypeName
+        from song_sheet_type where song_sheet_type_id in
+        <foreach collection="songSheetTypeId" item="typeId" open="(" close=")" separator=",">
+           #{typeId}
+        </foreach>
+    </select>
+
+    <delete id="deleteTypes">
+        delete from MusicWebsite.song_sheet_link_type
+        where song_list_id = #{songListId}
+    </delete>
+</mapper>

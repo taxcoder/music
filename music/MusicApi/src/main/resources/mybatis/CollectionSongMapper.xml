@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tanx.music.dao.CollectionSongMapper">
+
+    <insert id="addLikeMusic">
+        insert into collection_song(collection_song_id,song_id,user_id) values(#{collection_song_id},#{songId},#{userId})
+    </insert>
+
+    <delete id="deleteLikeMusic">
+        delete from collection_song where user_id = #{userId} and song_id = #{songId}
+    </delete>
+
+    <select id="likeMusic" resultType="com.tanx.music.pojo.model.CollectionSong" parameterType="java.lang.String">
+        select song_id as songId,user_id as userId from collection_song where user_id = #{userId}
+    </select>
+
+    <select id="selectCollectionSong" resultType="com.tanx.music.pojo.model.CollectionSong">
+        select song_id as songId, user_id as userId from  collection_song where song_id = #{songId} and user_id = #{userId}
+    </select>
+
+
+</mapper>
